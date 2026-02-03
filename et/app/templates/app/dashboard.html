@@ -1,0 +1,19 @@
+<h2>Expense Dashboard</h2>
+
+<p><b>Total Expense:</b> ₹{{ total }}</p>
+
+<table border="1">
+  <tr>
+    <th>Category</th>
+    <th>Amount</th>
+    <th>Date</th>
+  </tr>
+
+  {% for expense in expenses %}
+  <tr>
+    <td>{{ expense.category }}</td>
+    <td>{{ expense.amount }}</td>
+    <td>{{ expense.date }}</td>
+  </tr>
+  {% endfor %}
+</table>

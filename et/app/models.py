@@ -10,10 +10,13 @@ class Category(models.Model):
 
 class Expense(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True      # 👈 ADD THIS
+    )
     amount = models.FloatField()
     date = models.DateField()
     description = models.TextField(blank=True)
 
-    def __str__(self):
-        return f"{self.user.username} - {self.amount}"

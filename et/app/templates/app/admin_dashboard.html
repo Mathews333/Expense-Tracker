@@ -1,0 +1,35 @@
+{% extends 'app/base.html' %}
+{% block title %}Admin{% endblock %}
+
+{% block content %}
+<h2>Admin Dashboard</h2>
+
+<a href="{% url 'add_category' %}" class="btn btn-primary mb-3">
+    ➕ Add Category
+</a>
+
+<h4>Categories</h4>
+<ul class="list-group mb-4">
+    {% for category in categories %}
+        <li class="list-group-item">{{ category.name }}</li>
+    {% endfor %}
+</ul>
+
+<h4>All Expenses</h4>
+<table class="table table-bordered">
+    <tr>
+        <th>User</th>
+        <th>Category</th>
+        <th>Amount</th>
+        <th>Date</th>
+    </tr>
+    {% for expense in expenses %}
+    <tr>
+        <td>{{ expense.user.username }}</td>
+        <td>{{ expense.category }}</td>
+        <td>₹{{ expense.amount }}</td>
+        <td>{{ expense.date }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

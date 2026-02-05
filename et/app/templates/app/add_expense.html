@@ -1,12 +1,42 @@
-{% extends 'app/base.html' %}
-{% block title %}Add Expense{% endblock %}
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-50">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Add Expense | Expense Tracker</title>
+</head>
+<body class="h-full">
+    <div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Add New Expense</h2>
+                <p class="text-sm text-gray-500">Enter the details of your spending.</p>
+            </div>
 
-{% block content %}
-<h2>Add Expense</h2>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                    <div class="mt-1">
+                        {{ field }}
+                    </div>
+                    {% if field.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
 
-<form method="post" class="mt-3">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn btn-success">Save</button>
-</form>
-{% endblock %}
+                <div class="flex items-center space-x-4 pt-4">
+                    <button type="submit" class="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 font-medium transition">
+                        Save Expense
+                    </button>
+                    <a href="{% url 'index' %}" class="flex-1 text-center py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

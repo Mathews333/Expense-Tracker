@@ -1,11 +1,10 @@
 from django.urls import path
-from .views import dashboard, add_expense, delete_expense, admin_dashboard, add_category
+from . import views
 
 urlpatterns = [
-    path('', dashboard, name='dashboard'),
-    path('add/', add_expense, name='add_expense'),
-    path('delete/<int:id>/', delete_expense, name='delete_expense'),
-     path('adminpage/', admin_dashboard, name='admin_dashboard'),
-     path('adminpage/add-category/', add_category, name='add_category'),
-
+    path('', views.dashboard, name='index'),
+    path('add/', views.add_expense, name='add-expense'),
+    path('delete/<int:id>/', views.delete_expense, name='delete-expense'),
+    path('my-custom-admin/', views.admin_dashboard, name='admin-dashboard'),
+    path('my-custom-admin/add-category/', views.add_category, name='add-category'),
 ]

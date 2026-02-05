@@ -1,58 +1,97 @@
-{% extends 'app/base.html' %}
-{% block title %}Dashboard{% endblock %}
+{% extends 'base.html' %}
 
 {% block content %}
-<h2>Dashboard</h2>
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-md-3"> 
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body p-2 text-center">
+                    <h6 class="small text-muted mb-2 text-uppercase">By Category</h6>
+                    <div style="height: 140px; position: relative;"> 
+                        <canvas id="userPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
 
-<h4 class="mt-5">Expenses by Category</h4>
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body p-2 text-center">
+                    <h6 class="small text-muted mb-2 text-uppercase">Spend Trend</h6>
+                    <div style="height: 140px; position: relative;"> 
+                        <canvas id="userLineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card bg-dark text-white p-2 text-center shadow-sm">
+                <p class="mb-0 small">Total: <strong>${{ total|stringformat:".2f" }}</strong></p>
+            </div>
+        </div>
 
-<div style="width: 400px; height: 400px;">
-    <canvas id="expenseChart"></canvas>
+        <div class="col-md-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+                    <h6 class="mb-0">Recent Expenses</h6>
+                    <a href="{% url 'add-expense' %}" class="btn btn-sm btn-success py-0" style="font-size: 0.75rem;">+ Add</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0" style="font-size: 0.85rem;">
+                        <thead class="table-light">
+                            <tr><th>Category</th><th>Amount</th><th>Date</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for e in expenses %}
+                            <tr>
+                                <td>{{ e.category.name|default:"General" }}</td>
+                                <td>${{ e.amount }}</td>
+                                <td>{{ e.date|date:"m/d/y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-
-<table class="table table-striped mt-3">
-    <thead>
-        <tr>
-            <th>Category</th>
-            <th>Amount</th>
-            <th>Date</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for expense in expenses %}
-        <tr>
-            <td>{{ expense.category }}</td>
-            <td>₹{{ expense.amount }}</td>
-            <td>{{ expense.date }}</td>
-            <td>
-                <a href="{% url 'delete_expense' expense.id %}"
-                   class="btn btn-sm btn-outline-danger">
-                   Delete
-                </a>
-            </td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
-<h4 class="mt-5">Expenses by Category</h4>
-
-<canvas id="expenseChart"></canvas>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const ctx = document.getElementById('expenseChart');
+    const commonOptions = { maintainAspectRatio: false, plugins: { legend: { display: false } } };
 
-new Chart(ctx, {
-    type: 'pie',
-    data: {
-        labels: {{ labels|safe }},
-        datasets: [{
-            data: {{ data|safe }},
-        }]
-    },
-});
+    // Pie Chart
+    new Chart(document.getElementById('userPieChart'), {
+        type: 'pie',
+        data: {
+            labels: {{ labels|safe }},
+            datasets: [{
+                data: {{ data|safe }},
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+            }]
+        },
+        options: commonOptions
+    });
+
+    // Line Chart
+    new Chart(document.getElementById('userLineChart'), {
+        type: 'line',
+        data: {
+            labels: {{ date_labels|safe }},
+            datasets: [{
+                label: 'Daily Spend',
+                data: {{ date_values|safe }},
+                borderColor: '#36A2EB',
+                tension: 0.3,
+                fill: true,
+                backgroundColor: 'rgba(54, 162, 235, 0.1)'
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                x: { ticks: { font: { size: 9 } } },
+                y: { display: false }
+            }
+        }
+    });
 </script>
-
 {% endblock %}

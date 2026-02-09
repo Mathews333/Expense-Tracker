@@ -57,7 +57,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         # This DIRS list allows Django to find your base.html
-        'DIRS': [BASE_DIR / 'app' / 'templates'], 
+        'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

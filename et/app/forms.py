@@ -1,5 +1,7 @@
 from django import forms
 from .models import Expense, Category
+from django.core.exceptions import ValidationError
+from datetime import date
 
 def apply_style(form):
     for field_name, field in form.fields.items():
@@ -19,6 +21,17 @@ class ExpenseForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'rows': 3}),
             'amount': forms.NumberInput(attrs={'placeholder': '0.00'}),
         }
+        # def clean_amount(self):
+        # amount = self.cleaned_data.get('amount')
+        # if amount <= 0:
+        #     raise ValidationError("Price must be greater than zero.")
+        # return amount
+
+    def clean_date(self):
+        selected_date = self.cleaned_data.get('date')
+        if selected_date > date.today():
+            raise ValidationError("You cannot log a future expense.")
+        return selected_date
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

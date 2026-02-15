@@ -10,5 +10,4 @@ urlpatterns = [
     path('admin-panel/', redirect_to_custom_admin), # Your custom redirect
     
     path('', include('app.urls')), # This handles dashboard, add, etc.
-    path('accounts/', include('django.contrib.auth.urls')),
 ]

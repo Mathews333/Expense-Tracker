@@ -1,46 +1,320 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>My Expense Dashboard</h2>
-    
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card bg-primary text-white p-3">
-                <h5>Total Spent</h5>
-                <h3>${{ total }}</h3>
+<div class="container py-4">
+
+    <!-- HEADER + YEAR FILTER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h6 class="text-muted mb-1">Financial Overview</h6>
+            <h2 class="fw-bold mb-0">
+                {{ request.user.username|title }} 👋
+            </h2>
+        </div>
+
+        <form method="get">
+            <select name="year" class="form-select" onchange="this.form.submit()">
+                {% for y in years %}
+                    <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>
+                        {{ y }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+
+    <!-- SUMMARY CARDS -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <p class="text-muted">Income</p>
+                    <h4 class="text-success fw-bold">${{ income_total }}</h4>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-success text-white p-3">
-                <h5>Transactions</h5>
-                <h3>{{ count }}</h3>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <p class="text-muted">Expenses</p>
+                    <h4 class="text-danger fw-bold">${{ expense_total }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <p class="text-muted">Profit / Loss</p>
+                    <h4 class="fw-bold {% if profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        ${{ profit }}
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <p class="text-muted">Savings Rate</p>
+                    <h4 class="fw-bold">{{ savings_rate }}%</h4>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- MONTHLY BUDGET -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h5 class="mb-3">Monthly Budget</h5>
+
+            {% if budget_amount > 0 %}
+                <p>
+                    Budget: <strong>${{ budget_amount }}</strong><br>
+                    Spent: <strong>${{ monthly_spent }}</strong><br>
+                    Remaining:
+                    <strong class="{% if remaining_budget < 0 %}text-danger{% else %}text-success{% endif %}">
+                        ${{ remaining_budget }}
+                    </strong>
+                </p>
+
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar
+                        {% if budget_percentage > 100 %}
+                            bg-danger
+                        {% elif budget_percentage > 75 %}
+                            bg-warning
+                        {% else %}
+                            bg-success
+                        {% endif %}"
+                        style="width: {{ budget_percentage }}%;">
+                        {{ budget_percentage }}%
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-muted">No budget set for this month.</p>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <!-- MONTHLY COMPARISON -->
+    <div class="alert {% if change_percentage >= 0 %}alert-success{% else %}alert-danger{% endif %} mb-4">
+        This Month: <strong>${{ this_month }}</strong> |
+        Last Month: <strong>${{ last_month }}</strong> |
+        Change: <strong>{{ change_percentage }}%</strong>
+    </div>
+
+
+    <!-- =============================== -->
+    <!-- CHARTS SIDE BY SIDE -->
+    <!-- =============================== -->
+    <div class="row g-4 mb-4">
+
+        <!-- Income vs Expense -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="mb-3">Income vs Expense</h6>
+                    <div style="height:250px;">
+                        <canvas id="incomeExpenseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Chart -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="mb-3">Expense Categories</h6>
+                    <div style="height:250px;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- TRANSACTIONS TABLE -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Recent Transactions</h5>
+                <input type="text"
+                       id="expenseSearch"
+                       class="form-control w-50"
+                       placeholder="Search transactions...">
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th class="text-end">Amount</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in page_obj %}
+                        <tr class="expense-row">
+                            <td>{{ expense.date }}</td>
+                            <td>{{ expense.title }}</td>
+                            <td>
+                                <span class="badge {% if expense.type == 'income' %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ expense.type|title }}
+                                </span>
+                            </td>
+                            <td class="text-end fw-semibold">${{ expense.amount }}</td>
+                            <td class="text-end">
+                                <a href="{% url 'edit-expense' expense.pk %}"
+                                   class="btn btn-sm btn-outline-primary me-2">Edit</a>
+                                <form action="{% url 'delete-expense' expense.pk %}"
+                                      method="post"
+                                      class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Delete this expense?');">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                No transactions yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+               {% if page_obj.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+
+        <!-- Previous Button -->
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="?page={{ page_obj.previous_page_number }}&year={{ selected_year }}">
+                    Previous
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Previous</span>
+            </li>
+        {% endif %}
+
+        <!-- Page Numbers -->
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="?page={{ num }}&year={{ selected_year }}">
+                        {{ num }}
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        <!-- Next Button -->
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="?page={{ page_obj.next_page_number }}&year={{ selected_year }}">
+                    Next
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next</span>
+            </li>
+        {% endif %}
+
+    </ul>
+</nav>
+{% endif %}
+
             </div>
         </div>
     </div>
 
-    <hr>
-
-    <h4>Recent Expenses</h4>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Title</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for expense in expenses %}
-            <tr>
-                <td>{{ expense.date }}</td>
-                <td>{{ expense.title }}</td>
-                <td>${{ expense.amount }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="3">No expenses found.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
 </div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+
+const monthlyLabels = {{ monthly_labels|default:"[]"|safe }};
+const monthlyIncome = {{ monthly_income|default:"[]"|safe }};
+const monthlyExpense = {{ monthly_expense|default:"[]"|safe }};
+const categoryLabels = {{ labels|default:"[]"|safe }};
+const categoryData = {{ data|default:"[]"|safe }};
+
+// Income vs Expense
+new Chart(document.getElementById('incomeExpenseChart'), {
+    type: 'bar',
+    data: {
+        labels: monthlyLabels,
+        datasets: [
+            { label: 'Income', data: monthlyIncome, backgroundColor: '#198754' },
+            { label: 'Expense', data: monthlyExpense, backgroundColor: '#dc3545' }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Category
+if (categoryData.length > 0) {
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'doughnut',
+        data: {
+            labels: categoryLabels,
+            datasets: [{
+                data: categoryData,
+                backgroundColor: [
+                    '#0d6efd','#198754','#dc3545',
+                    '#ffc107','#6f42c1','#fd7e14'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+// Search
+document.getElementById('expenseSearch').addEventListener('keyup', function() {
+    const value = this.value.toLowerCase();
+    document.querySelectorAll('.expense-row').forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
+    });
+});
+
+</script>
 {% endblock %}

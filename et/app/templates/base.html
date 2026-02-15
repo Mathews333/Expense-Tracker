@@ -2,79 +2,116 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Tracker</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <style>
-        body { background-color: #f8f9fa; }
-        .navbar-brand { font-weight: bold; color: #0d6efd !important; }
-        .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body { background-color: #f4f6f9; }
+        .navbar-brand { font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'index' %}">💰 ExpenseTracker</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'index' %}">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'add-expense' %}">Add Expense</a>
-                    </li>
-                </ul>
-                
-                <ul class="navbar-nav">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <span class="nav-link text-dark">Hello, <strong>{{ user.username }}</strong></span>
-                        </li>
-                        <li class="nav-item">
-                            <form action="{% url 'logout' %}" method="post" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-link nav-link text-danger">Logout</button>
-                            </form>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Login</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
-
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
     <div class="container">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
+
+        <a class="navbar-brand text-primary" href="{% url 'home' %}">
+            💰 ExpenseTracker
+        </a>
+
+        <button class="navbar-toggler" type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            {% if user.is_authenticated %}
+            <!-- LEFT SIDE -->
+            <ul class="navbar-nav me-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'index' %}">
+                        Dashboard
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'add-expense' %}">
+                        Add Expense
+                    </a>
+                </li>
+
+                {% if user.is_staff %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'admin-dashboard' %}">
+                        Admin Panel
+                    </a>
+                </li>
+                {% endif %}
+
+            </ul>
+            {% endif %}
+
+            <!-- RIGHT SIDE -->
+            <ul class="navbar-nav ms-auto">
+
+                {% if user.is_authenticated %}
+                <li class="nav-item me-3 align-self-center">
+                    <span class="text-muted">
+                        {{ request.user.username }}
+                        {% if user.is_staff %}
+                            <span class="badge bg-primary ms-1">Admin</span>
+                        {% endif %}
+                    </span>
+                </li>
+
+                <li class="nav-item">
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="btn btn-link nav-link text-danger p-0">
+                            Logout
+                        </button>
+                    </form>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">
+                        Login
+                    </a>
+                </li>
+                {% endif %}
+
+            </ul>
+
+        </div>
     </div>
+</nav>
 
-    <main>
-        {% block content %}
-        {% endblock %}
-    </main>
+<div class="container mt-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    {% block scripts %}
-    {% endblock %}
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% block scripts %}{% endblock %}
 
 </body>
 </html>

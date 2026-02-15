@@ -14,7 +14,8 @@ def apply_style(form):
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
-        fields = ['category', 'amount', 'date', 'description']
+        fields = ['title', 'amount', 'date', 'category', 'description', 'type']
+
         widgets = {
             # This 'type': 'date' is essential for the calendar picker
             'date': forms.DateInput(attrs={'type': 'date'}),
@@ -45,3 +46,16 @@ class CategoryForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         apply_style(self)
+        
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+
+class RegisterForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ['username', 'password1', 'password2']
+def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    for field in self.fields.values():
+        field.widget.attrs.update({'class': 'form-control'})
+

@@ -1,71 +1,166 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Admin Management Console</h2>
+<div class="container py-5">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
         <div>
-            <a href="{% url 'add-category' %}" class="btn btn-outline-primary">Manage Categories</a>
+            <h6 class="text-muted text-uppercase mb-1">Platform Overview</h6>
+            <h1 class="fw-bold mb-0">Admin Management Console</h1>
+        </div>
+        <a href="{% url 'add-category' %}" class="btn btn-primary px-4 shadow-sm">
+            + Manage Categories
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-5">
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 summary-card">
+                <div class="card-body">
+                    <p class="text-muted small mb-2">Total Users</p>
+                    <h2 class="fw-bold mb-0">{{ total_users }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 summary-card">
+                <div class="card-body">
+                    <p class="text-muted small mb-2">Total Platform Spend</p>
+                    <h2 class="fw-bold text-danger mb-0">
+                        ${{ total_spent }}
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 summary-card">
+                <div class="card-body">
+                    <p class="text-muted small mb-2">Total Transactions</p>
+                    <h2 class="fw-bold mb-0">{{ expenses|length }}</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-semibold mb-0">All User Transactions</h5>
+
+                <input 
+                    type="text" 
+                    id="adminSearch"
+                    class="form-control search-input"
+                    placeholder="Search user, category, date..."
+                >
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle admin-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                        <tr class="admin-row">
+                            <td class="fw-semibold">
+                                {{ expense.user.username }}
+                            </td>
+
+                            <td>
+                                <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                                    {{ expense.category.name|default:"General" }}
+                                </span>
+                            </td>
+
+                            <td class="text-muted">
+                                {{ expense.date }}
+                            </td>
+
+                            <td class="text-end fw-bold">
+                                <span class="text-danger">
+                                    ${{ expense.amount }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-5">
+                                No transactions available.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     </div>
 
-    <div class="row mb-5">
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 bg-dark text-white">
-                <div class="card-body">
-                    <h6 class="text-uppercase small">Total Platform Users</h6>
-                    <h2 class="display-6">{{ total_users }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 bg-primary text-white">
-                <div class="card-body">
-                    <h6 class="text-uppercase small">Total Global Spend</h6>
-                    <h2 class="display-6">${{ total_spent }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 bg-info text-white">
-                <div class="card-body">
-                    <h6 class="text-uppercase small">Recent Transactions</h6>
-                    <h2 class="display-6">{{ expenses.count }}</h2>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card shadow-sm">
-        <div class="card-header bg-white">
-            <h5 class="mb-0">All User Expenses</h5>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>User</th>
-                        <th>Category</th>
-                        <th>Amount</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for expense in expenses %}
-                    <tr>
-                        <td><strong>{{ expense.user.username }}</strong></td>
-                        <td><span class="badge bg-secondary">{{ expense.category.name|default:"None" }}</span></td>
-                        <td class="text-danger">-${{ expense.amount }}</td>
-                        <td>{{ expense.date|date:"M d, Y" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center text-muted">No expenses recorded yet.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
 </div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+
+const searchInput = document.getElementById('adminSearch');
+const rows = document.querySelectorAll('.admin-row');
+
+searchInput.addEventListener('keyup', function () {
+    const value = this.value.toLowerCase();
+    rows.forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
+    });
+});
+
+</script>
+
+<style>
+
+/* Summary card hover effect */
+.summary-card {
+    border-radius: 14px;
+    transition: all 0.25s ease;
+}
+.summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+}
+
+/* Table polish */
+.admin-table thead th {
+    font-weight: 600;
+    border-bottom: 2px solid #f1f1f1;
+}
+
+.admin-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.admin-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Search field */
+.search-input {
+    max-width: 320px;
+    border-radius: 50px;
+    padding-left: 20px;
+}
+
+</style>
 {% endblock %}

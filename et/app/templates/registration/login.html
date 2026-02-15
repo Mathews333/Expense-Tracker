@@ -1,34 +1,40 @@
-<!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-50">
-<head>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Login | Expense Tracker</title>
-</head>
-<body class="h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
-        <div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
-        </div>
-        <form class="mt-8 space-y-6" method="POST">
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-center" 
+     style="min-height: 80vh;">
+
+    <div class="card shadow p-4" style="width: 100%; max-width: 420px;">
+        <h3 class="text-center mb-4">User Login</h3>
+
+        <form method="post">
             {% csrf_token %}
-            <div class="rounded-md shadow-sm -space-y-px">
-                {% for field in form %}
-                <div class="mb-4">
-                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
-                    <input type="{{ field.field.widget.input_type }}" 
-                           name="{{ field.html_name }}" 
-                           class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                           required>
-                </div>
-                {% endfor %}
+
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                {{ form.username }}
             </div>
 
-            <div>
-                <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
-                    Sign in
-                </button>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                {{ form.password }}
             </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Sign In
+            </button>
         </form>
+
+        <div class="text-center mt-3">
+            {% comment %} <a href="{% url 'staff-login' %}" class="small text-muted">
+                Staff Login Portal
+            </a> {% endcomment %}
+        </div>
+
+        <div class="text-center mt-2">
+            Don't have an account?
+            <a href="{% url 'register' %}">Register</a>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
